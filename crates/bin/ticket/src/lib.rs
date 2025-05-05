@@ -16,6 +16,10 @@ use std::ffi::OsString;
 #[command(name = "Git Ticket")]
 #[command(version)]
 #[command(about = "Attaches ticket(s) to your commit messages.")]
+#[command(long_about = Some("Attaches ticket(s) to your commit messages. This is done via the git commit message template.
+Please ensure to set the path to this file in your git configuration using \
+`git config --global commit.template ~/.gitmessage.txt`.
+By default the file will be created in your home directory with the name ~/.gitmessage.txt, but this can be overridden."))]
 pub struct Args {}
 
 impl Args {

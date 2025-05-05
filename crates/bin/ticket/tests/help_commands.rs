@@ -21,23 +21,41 @@ static BINARY: LazyLock<&Path> = LazyLock::new(|| cargo_bin!("git-ticket"));
 #[rstest]
 #[case::short("-V")]
 #[case::full("--version")]
-fn test_prints_version_given_version_flag_is_set(#[case] flag: &str) {
+fn test_prints_version_when_the_version_flag_is_set(#[case] flag: &str) {
     Command::new(BINARY.clone()).arg(flag).assert().success().stdout("Git Ticket 0.1.0\n");
 }
 
-#[rstest]
-#[case::short("-h")]
-#[case::full("--help")]
-fn test_prints_help_given_help_flag_is_set(#[case] flag: &str) {
-    Command::new(BINARY.clone()).arg(flag).assert().success().stdout(indoc!(
+#[test]
+fn test_prints_help_with_short_description_when_the_short_help_flag_is_set() {
+    Command::new(BINARY.clone()).arg("-h").assert().success().stdout(indoc!(
         "
             	Attaches ticket(s) to your commit messages.
 
             	Usage: git-ticket
 
             	Options:
-            	  -h, --help     Print help
+            	  -h, --help     Print help (see more with '--help')
             	  -V, --version  Print version
 		  	"
+    ));
+}
+
+#[test]
+fn test_prints_long_description_when_the_full_help_flag_is_set() {
+    Command::new(BINARY.clone()).arg("--help").assert().success().stdout(indoc!(
+        "
+			Attaches ticket(s) to your commit messages. This is done via the git commit message template.
+			Please ensure to set the path to this file in your git configuration using `git config --global commit.template ~/.gitmessage.txt`.
+			By default the file will be created in your home directory with the name ~/.gitmessage.txt, but this can be overridden.
+
+			Usage: git-ticket
+
+			Options:
+			  -h, --help
+			          Print help (see a summary with '-h')
+
+			  -V, --version
+			          Print version
+		"
     ));
 }
