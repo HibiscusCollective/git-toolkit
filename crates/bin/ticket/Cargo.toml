@@ -1,8 +1,8 @@
 [package]
-name = "git-toolkit"
-description = "TODO: Library description"
+name = "git-ticket"
+description = "A git extension allowing you to select a ticket and add it as a reference in the git commit template."
 categories = ["command-line-utilities", "development-tools"]
-keywords.workspace = true
+keywords = ["git", "command-line", "template", "ticket", "commit"]
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -16,3 +16,9 @@ include.workspace = true
 publish = true
 
 [dependencies]
+clap = { version = "4.5.37", features = ["derive"] }
+
+[dev-dependencies]
+assert_cmd = "2.0.17"
+indoc = "2.0.6"
+rstest = "0.25.0"

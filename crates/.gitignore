@@ -1,11 +1,12 @@
 ######## Structure ########
 !bin
-!bin/cli/
+!bin/ticket/
 
 !lib
 !lib/dummy/
 
 ########## Code ###########
 !**/src/
+!**/tests/
 
 !*.rs
