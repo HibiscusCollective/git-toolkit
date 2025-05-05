@@ -1,0 +1,19 @@
+[package]
+name = "libtodo_my_project_name"                                                   # This will be the name on crates.io
+description = "TODO: Library description"
+categories = ["TODO: Library categories"]
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+documentation.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+exclude.workspace = true
+include.workspace = true
+publish.workspace = true
+
+[dependencies]

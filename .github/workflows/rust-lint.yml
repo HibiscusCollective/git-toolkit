@@ -1,0 +1,22 @@
+name: Linting Checks
+
+permissions:
+    contents: read
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    rust:
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: read
+        container:
+            image: rust:1.85-slim-bullseye@sha256:bee60fb6eed9d37343f20c3393f7d641828e807665dd1b161d648e59e3497584
+        steps:
+            - uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2
+            - uses: jdx/mise-action@c5d0c300fa141a481a2fce49a31e5bacbe65125e
+            - with:
+                install: true
+            - run: mise lint

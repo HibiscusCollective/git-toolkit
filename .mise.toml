@@ -1,0 +1,46 @@
+[tools]
+lefthook = "1.11.6"
+markdownlint-cli2 = "0.17.2"
+gh = "2.69.0"
+bun = "1.2.8"
+
+[task_config]
+includes = [
+  ".config/tasks.md.toml",
+  ".config/tasks.rs.toml",
+  ".config/tasks.ts.toml",
+]
+
+[vars]
+config_dir = "{{config_root}}/.config"
+
+[env]
+CLIPPY_CONF_DIR = "{{vars.config_dir}}"
+
+[tasks.bootstrap]
+description = "Bootstrap the project"
+run = "bun install && lefthook install"
+
+[tasks.fmt]
+description = "Run all formatting tasks"
+depends = ["fmt:*"]
+
+[tasks.lint]
+description = "Run all linting tasks"
+depends = ["lint:*"]
+
+[tasks.fix]
+description = "Fix all linting problems"
+depends = ["fix:*"]
+
+[tasks.test]
+description = "Run all tests"
+run = "cargo test"
+
+[tasks.build]
+description = "Build the project"
+depends = ["build:debug"]
+
+[tasks."lint:spellcheck"]
+description = "Run spell check"
+run = "bun run spellcheck"

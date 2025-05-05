@@ -1,0 +1,32 @@
+[workspace]
+members = ["crates/lib"]
+resolver = "3"
+
+[workspace.package]
+name = "todo_my_project_name"
+version = "0.1.0"
+authors = [
+    "Pierre Fouilloux",
+    "Hibiscus Collective <collective@hibiscusgames.com>",
+]
+edition = "2024"
+rust-version = "1.85"
+description = "TODO: Project description"
+documentation = "TODO: Project documentation"
+readme = "README.md"
+homepage = "TODO: Project homepage"
+repository = "TODO: Project repository"
+license = "TODO: Project license"
+keywords = ["TODO: Project keywords"]
+exclude = ["target/", "*.log", "*.tmp"]
+include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
+publish = true
+
+[workspace.lints.clippy]
+style = "deny"
+complexity = "deny"
+perf = "deny"
+pedantic = "warn"
+
+[workspace.dependencies]
+lib = { path = "crates/lib" }
