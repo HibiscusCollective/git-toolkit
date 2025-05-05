@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "libtodo_my_project_name"
+name = "git-toolkit"
 version = "0.1.0"

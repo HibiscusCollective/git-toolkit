@@ -10,6 +10,7 @@
 		".vscode",
 		"**/target/**",
 		"**/*.lock",
+		".attribution/*",
 		"LICENSE"
 	],
 	"ignoreRegExpList": [
@@ -38,6 +39,7 @@
 		"commitlintrc",
 		"crev",
 		"cryosphere",
+		"CVSS",
 		"czrc",
 		"deepsource",
 		"direnv",

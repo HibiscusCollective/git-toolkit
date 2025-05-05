@@ -1,14 +1,14 @@
 [tools]
-lefthook = "1.11.6"
 markdownlint-cli2 = "0.17.2"
-gh = "2.69.0"
-bun = "1.2.8"
+gh = "2.72.0"
+bun = "1.2.12"
+"go:github.com/evilmartians/lefthook" = "1.11.12"
 
 [task_config]
 includes = [
-  ".config/tasks.md.toml",
-  ".config/tasks.rs.toml",
-  ".config/tasks.ts.toml",
+	".tasks/tasks.md.toml",
+	".tasks/tasks.rs.toml",
+	".tasks/tasks.ts.toml",
 ]
 
 [vars]

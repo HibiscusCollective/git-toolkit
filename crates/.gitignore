@@ -1,0 +1,11 @@
+######## Structure ########
+!bin
+!bin/cli/
+
+!lib
+!lib/dummy/
+
+########## Code ###########
+!**/src/
+
+!*.rs

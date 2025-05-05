@@ -1,23 +1,21 @@
 [workspace]
-members = ["crates/lib"]
 resolver = "3"
+members = ["crates/bin/cli"]
 
 [workspace.package]
-name = "todo_my_project_name"
 version = "0.1.0"
 authors = [
-    "Pierre Fouilloux",
-    "Hibiscus Collective <collective@hibiscusgames.com>",
+	"Pierre Fouilloux",
+	"Hibiscus Collective <collective@hibiscusgames.com>",
 ]
 edition = "2024"
-rust-version = "1.85"
 description = "TODO: Project description"
-documentation = "TODO: Project documentation"
+documentation = "https://github.com/HibiscusCollective/git-toolkit"
 readme = "README.md"
-homepage = "TODO: Project homepage"
-repository = "TODO: Project repository"
-license = "TODO: Project license"
-keywords = ["TODO: Project keywords"]
+homepage = "https://github.com/HibiscusCollective/git-toolkit"
+repository = "https://github.com/HibiscusCollective/git-toolkit"
+license = "AGPL-3.0-or-later"
+keywords = ["git", "cli", "commit", "tool", "vcs"]
 exclude = ["target/", "*.log", "*.tmp"]
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 publish = true
@@ -29,4 +27,3 @@ perf = "deny"
 pedantic = "warn"
 
 [workspace.dependencies]
-lib = { path = "crates/lib" }

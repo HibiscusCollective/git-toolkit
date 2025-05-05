@@ -1,0 +1,17 @@
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 2
+tab_width = 2
+indent_style = tab
+insert_final_newline = true
+max_line_length = 128
+
+[*.rs]
+indent_size = 4
+tab_width = 4
+
+[{*.gd,*.gdf}]
+indent_size = 4
+tab_width = 4
+indent_style = space
