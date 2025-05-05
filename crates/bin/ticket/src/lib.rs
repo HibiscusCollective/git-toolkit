@@ -15,14 +15,14 @@ use std::ffi::OsString;
 #[derive(Parser)]
 #[command(name = "Git Ticket")]
 #[command(version)]
-pub struct Cli {}
+pub struct Args {}
 
-impl Cli {
+impl Args {
     pub fn parse_from_args<ITER, ARG>(args: ITER) -> Self
     where
         ITER: IntoIterator<Item = ARG>,
         ARG: Into<OsString> + Clone,
     {
-        Cli::parse_from(args)
+        Args::parse_from(args)
     }
 }

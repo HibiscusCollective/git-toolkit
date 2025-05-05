@@ -9,8 +9,8 @@
  * You should have received a copy of the GNU Affero General Public License along with this program.
  * If not, see https://www.gnu.org/licenses/.
  */
-use git_ticket::Cli;
+use git_ticket::Args;
 
 fn main() {
-    Cli::parse_from_args(std::env::args_os());
+    Args::parse_from_args(std::env::args_os());
 }
