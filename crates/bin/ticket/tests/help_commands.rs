@@ -31,11 +31,13 @@ fn test_prints_version_given_version_flag_is_set(#[case] flag: &str) {
 fn test_prints_help_given_help_flag_is_set(#[case] flag: &str) {
     Command::new(BINARY.clone()).arg(flag).assert().success().stdout(indoc!(
         "
-            Usage: git-ticket
+            	Attaches ticket(s) to your commit messages.
 
-            Options:
-              -h, --help     Print help
-              -V, --version  Print version
-        "
+            	Usage: git-ticket
+
+            	Options:
+            	  -h, --help     Print help
+            	  -V, --version  Print version
+		  	"
     ));
 }

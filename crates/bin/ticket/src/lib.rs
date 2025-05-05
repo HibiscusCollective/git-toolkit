@@ -15,6 +15,7 @@ use std::ffi::OsString;
 #[derive(Parser)]
 #[command(name = "Git Ticket")]
 #[command(version)]
+#[command(about = "Attaches ticket(s) to your commit messages.")]
 pub struct Args {}
 
 impl Args {
