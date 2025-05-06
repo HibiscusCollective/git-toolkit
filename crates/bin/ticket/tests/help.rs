@@ -29,14 +29,14 @@ fn test_prints_version_when_the_version_flag_is_set(#[case] flag: &str) {
 fn test_prints_help_with_short_description_when_the_short_help_flag_is_set() {
     Command::new(BINARY.clone()).arg("-h").assert().success().stdout(indoc!(
         "
-            	Attaches ticket(s) to your commit messages.
+			Attaches ticket(s) to your commit messages.
 
-            	Usage: git-ticket
+			Usage: git-ticket
 
-            	Options:
-            	  -h, --help     Print help (see more with '--help')
-            	  -V, --version  Print version
-		  	"
+			Options:
+			  -h, --help     Print help (see more with '--help')
+			  -V, --version  Print version
+		"
     ));
 }
 
