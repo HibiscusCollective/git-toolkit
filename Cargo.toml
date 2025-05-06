@@ -9,7 +9,7 @@ authors = [
 	"Hibiscus Collective <collective@hibiscusgames.com>",
 ]
 edition = "2024"
-description = "TODO: Project description"
+description = "Git Toolkit extends Git's user experience to be more friendly while integrating with conventional commits specification"
 documentation = "https://github.com/HibiscusCollective/git-toolkit"
 readme = "README.md"
 homepage = "https://github.com/HibiscusCollective/git-toolkit"

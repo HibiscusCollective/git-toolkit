@@ -1,13 +1,40 @@
-# {PROJECT_NAME}
+# Git Toolkit
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/HibiscusCollective/{project}/badge)](https://scorecard.dev/viewer/?uri=github.com/HibiscusCollective/{project})
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/HibiscusCollective/git-toolkit/badge)](https://scorecard.dev/viewer/?uri=github.com/HibiscusCollective/git-toolkit)
 
-{PROJECT_DESCRIPTION}
+Git Toolkit extends Git's user experience to be more friendly and approachable while integrating tightly with the conventional commits specification. It aims to reduce friction in collaborative Git workflows by streamlining repetitive tasks like adding ticket references to commit messages.
+
+**Note:** This project is a work in progress. Currently, only the ticket reference functionality is supported.
+
+## Development
+
+Git Toolkit uses [mise](https://github.com/jdx/mise) to manage development tools and tasks. To get started:
+
+1. Install mise if you haven't already
+2. Bootstrap the project:
+
+   ```bash
+   mise run bootstrap
+   ```
+
+### Common Development Tasks
+
+- **Build the project**: `mise run build`
+- **Run tests**: `mise run test`
+- **Format code**: `mise run fmt`
+- **Lint code**: `mise run lint`
+- **Fix linting issues**: `mise run fix`
+
+For cross-platform builds, you can use:
+
+- `mise run build:debug:linux` - Build for Linux
+- `mise run build:debug:windows` - Build for Windows
+- `mise run build:release` - Build release versions
 
 ## License
 
-Copyright (C) {year} {author(s)}
+Copyright (C) 2025 Pierre Fouilloux, Hibiscus Collective
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
 Software Foundation, either version 3 of the License, or (at your option) any later version.
