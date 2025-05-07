@@ -9,11 +9,11 @@ authors = [
 	"Hibiscus Collective <collective@hibiscusgames.com>",
 ]
 edition = "2024"
-description = "Git Toolkit extends Git's user experience to be more friendly while integrating with conventional commits specification"
-documentation = "https://github.com/HibiscusCollective/git-toolkit"
+description = "Hibiscus Git Toolkit (hibigit) extends Git's user experience to be more friendly while integrating with conventional commits specification"
+documentation = "https://github.com/HibiscusCollective/hibigit/docs"
 readme = "README.md"
-homepage = "https://github.com/HibiscusCollective/git-toolkit"
-repository = "https://github.com/HibiscusCollective/git-toolkit"
+homepage = "https://github.com/HibiscusCollective"
+repository = "https://github.com/HibiscusCollective/hibigit"
 license = "AGPL-3.0-or-later"
 keywords = ["git", "cli", "commit", "tool", "vcs"]
 exclude = ["target/", "*.log", "*.tmp"]
