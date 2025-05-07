@@ -6,9 +6,9 @@ bun = "1.2.12"
 
 [task_config]
 includes = [
-	".tasks/tasks.md.toml",
-	".tasks/tasks.rs.toml",
-	".tasks/tasks.ts.toml",
+  ".tasks/tasks.md.toml",
+  ".tasks/tasks.rs.toml",
+  ".tasks/tasks.ts.toml",
 ]
 
 [vars]

@@ -17,12 +17,12 @@ use std::fmt::{Debug, Display, Formatter};
 #[macro_export]
 macro_rules! errors {
     ($($err:expr),+) => {
-        Errors(&[$($err),+])
+        Errors(vec![$($err),+])
     }
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct Errors<E: CoreError + Debug + PartialEq + 'static>(&'static [E]);
+pub(crate) struct Errors<E: CoreError + Debug + PartialEq>(Vec<E>);
 
 impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -31,8 +31,8 @@ impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
         }
 
         write!(f, "error(s):")?;
-        for err in self.0.iter() {
-            write!(f, "\n  {}", err)?
+        for err in &self.0 {
+            write!(f, "\n  {err}")?;
         }
 
         Ok(())
@@ -53,29 +53,87 @@ mod tests {
     use thiserror::Error;
 
     #[rstest]
-    #[case::single_error(errors!(
-		TestError("boom")), 
+    #[case::single_error(
+		errors!(TestError::String("boom".to_string())),
 		vec![
 			"error(s):",
-			"  test error: boom"
+			"  string error: boom"
 		]
 	)]
     #[case::multiple_errors(
-        errors!(TestError("1"), TestError("2")), 
+        errors!(TestError::Numeric(1), TestError::Numeric(2)),
         vec![
 			"error(s):",
-			"  test error: 1",
-            "  test error: 2",
+			"  numeric error: 1",
+            "  numeric error: 2",
         ],
-    )]
+	)]
+    #[case::complex_error(
+        errors!(TestError::Complex { msg: "failed".to_string(), number: 42 }),
+        vec![
+            "error(s):",
+            "  complex error: failed: 42",
+        ],
+	)]
+    #[case::struct_error(
+        errors!(TestError::Struct(TestData {
+            string: "test".to_string(),
+            num: 100,
+            float: 4.2
+        })),
+        vec![
+            "error(s):",
+            "  struct error: TestData { string: \"test\", num: 100, float: 4.2 }",
+        ],
+	)]
+    #[case::nested_error(
+        errors!(TestError::Nested(Box::new(TestError::String("inner error".to_string())))),
+        vec![
+            "error(s):",
+            "  string error: inner error",
+        ],
+	)]
+    #[case::mixed_errors(
+        errors!(
+            TestError::Numeric(42),
+            TestError::String("text error".to_string()),
+            TestError::Complex { msg: "complex".to_string(), number: 7 }
+        ),
+        vec![
+            "error(s):",
+            "  numeric error: 42",
+            "  string error: text error",
+            "  complex error: complex: 7",
+        ],
+	)]
     fn test_displays_error_list(#[case] errs: Errors<TestError>, #[case] expect_lines: Vec<&str>) {
         let expect = expect_lines.join("\n");
-        assert_eq!(expect, format!("{}", errs))
+        assert_eq!(expect, format!("{errs}"));
     }
 
     #[rstest]
-    #[case::single_error(errors!(TestError("boom")), TestError("boom"))]
-    #[case::multiple_errors(errors!(TestError("1"), TestError("2")), TestError("1"))]
+    #[case::single_error(errors!(TestError::String("boom".to_string())), TestError::String("boom".to_string()))]
+    #[case::multiple_errors(errors!(TestError::Numeric(1), TestError::String("2".to_string())), TestError::Numeric(1))]
+    #[case::complex_error(
+        errors!(TestError::Complex { msg: "complex".to_string(), number: 8 }),
+        TestError::Complex { msg: "complex".to_string(), number: 8 }
+	)]
+    #[case::struct_error(
+        errors!(TestError::Struct(TestData {
+            string: "data".to_string(),
+            num: 200,
+            float: 2.71
+        })),
+        TestError::Struct(TestData {
+            string: "data".to_string(),
+            num: 200,
+            float: 2.71
+        })
+	)]
+    #[case::nested_error(
+        errors!(TestError::Nested(Box::new(TestError::Numeric(99)))),
+        TestError::Nested(Box::new(TestError::Numeric(99)))
+	)]
     fn test_get_first_error_as_source(#[case] errs: Errors<TestError>, #[case] expect: TestError) {
         let actual = errs
             .source()
@@ -83,10 +141,46 @@ mod tests {
             .downcast_ref::<TestError>()
             .expect("should be a TestError");
 
-        assert_eq!(&expect, actual)
+        assert_eq!(&expect, actual);
     }
 
-    #[derive(Error, Debug, PartialEq)]
-    #[error("test error: {0}")]
-    struct TestError<'a>(&'a str);
+    #[derive(Error, Debug)]
+    enum TestError {
+        #[error("numeric error: {0}")]
+        Numeric(i32),
+        #[error("string error: {0}")]
+        String(String),
+        #[error("complex error: {msg}: {number}")]
+        Complex { msg: String, number: u8 },
+        #[error("struct error: {0:?}")]
+        Struct(TestData),
+        #[error(transparent)]
+        Nested(#[from] Box<dyn CoreError>),
+    }
+
+    #[derive(Debug)]
+    struct TestData {
+        string: String,
+        num: i32,
+        float: f32,
+    }
+
+    impl PartialEq for TestData {
+        fn eq(&self, other: &Self) -> bool {
+            self.string == other.string && self.num == other.num && self.float.to_bits() == other.float.to_bits()
+        }
+    }
+
+    impl PartialEq for TestError {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Self::Numeric(a), Self::Numeric(b)) => a == b,
+                (Self::String(a), Self::String(b)) => a == b,
+                (Self::Complex { msg: a_msg, number: a_num }, Self::Complex { msg: b_msg, number: b_num }) => a_msg == b_msg && a_num == b_num,
+                (Self::Struct(a), Self::Struct(b)) => a == b,
+                (Self::Nested(a), Self::Nested(b)) => format!("{a}") == format!("{b}"),
+                _ => false,
+            }
+        }
+    }
 }
