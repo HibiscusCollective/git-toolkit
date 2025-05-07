@@ -27,7 +27,15 @@ struct Errors<E: CoreError + Debug + PartialEq>(Vec<E>);
 
 impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0[0])
+        if self.0.len() == 1 {
+            return write!(f, "{}", self.0[0]);
+        }
+
+        for err in self.0.iter() {
+            writeln!(f, "{}", err)?
+        }
+
+        Ok(())
     }
 }
 
@@ -35,11 +43,21 @@ impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
 mod tests {
     use super::*;
 
+    use indoc::indoc;
     use rstest::rstest;
 
     #[rstest]
-    #[case::single_error(errors!(TestError("boom")), "test error: boom")]
-    fn test_displays_error_list(#[case] errs: Errors<TestError>, #[case] expect: &str) {
+    #[case::single_error(errors!(TestError("boom")), vec!["test error: boom"])]
+    #[case::multiple_errors(
+        errors!(TestError("1"), TestError("2")), 
+        vec![
+			"test error: 1",
+            "test error: 2",
+			""
+        ],
+    )]
+    fn test_displays_error_list(#[case] errs: Errors<TestError>, #[case] expect_lines: Vec<&str>) {
+        let expect = expect_lines.join("\n");
         assert_eq!(expect, format!("{}", errs))
     }
     #[derive(Error, Debug, PartialEq)]

@@ -15,6 +15,7 @@ include.workspace = true
 publish.workspace = true
 
 [dependencies]
+indoc.workspace = true
 thiserror = "2.0.12"
 
 [lints]
