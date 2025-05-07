@@ -11,4 +11,4 @@
  * If not, see https://www.gnu.org/licenses/.
  */
 
-mod errors;
+pub mod errors;

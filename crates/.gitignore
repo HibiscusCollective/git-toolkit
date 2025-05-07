@@ -8,5 +8,7 @@
 ########## Code ###########
 !**/src/
 !**/tests/
+!**/proptest-regressions
 
 !*.rs
+!*.txt

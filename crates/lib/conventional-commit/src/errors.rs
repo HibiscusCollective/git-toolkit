@@ -11,20 +11,113 @@
  * If not, see https://www.gnu.org/licenses/.
  */
 
+//! Error collections for the conventional-commit crate.
+//!
+//! This module provides a standardized way to collect and display multiple errors.
+//! It includes the `Errors` struct for managing collections of errors and the
+//! `multi_error!` macro for convenient error collection creation.
+
 use core::error::Error as CoreError;
 use std::fmt::{Debug, Display, Formatter};
 
+/// Creates a collection of errors.
+///
+/// This macro simplifies the creation of an `Errors` struct by accepting
+/// a comma-separated list of error instances.
+///
+/// # Examples
+///
+/// ```
+/// use conventional_commit::errors::{self, Errors};
+/// use conventional_commit::multi_error;
+/// # use std::fmt::{Debug, Display};
+/// # use thiserror::Error;
+///
+/// # #[derive(Error, Debug, PartialEq)]
+/// # #[error("unexpected error: {0}")]
+/// # struct MyError(String);
+///
+/// # impl MyError {
+/// #     fn new(str: impl Into<String>) -> Self {
+/// #         MyError(str.into())
+/// #     }
+/// # }
+///
+/// // Create an Errors collection with a single error
+/// let single_error = multi_error!(MyError::new("something went wrong"));
+///
+/// // Create an Errors collection with multiple errors
+/// let multiple_errors = multi_error!(
+///     MyError::new("first error"),
+///     MyError::new("second error")
+/// );
+/// ```
 #[macro_export]
-macro_rules! errors {
+macro_rules! multi_error {
     ($($err:expr),+) => {
-        Errors(vec![$($err),+])
+        $crate::errors::Errors::from(vec![$($err),+])
     }
 }
 
+/// A collection of errors that implements the `Error` trait.
+///
+/// `Errors<E>` provides a way to collect multiple errors of the same type
+/// and treat them as a single error. This is useful when multiple validation
+/// errors need to be reported together.
+///
+/// The struct implements:
+/// - `Display` to format the errors with proper indentation
+/// - `CoreError` to allow it to be used in error chains
+///
+/// # Type Parameters
+///
+/// * `E` - The error type, which must implement `CoreError`, `Debug`, and `PartialEq`
+///
+/// # Examples
+///
+/// ```
+/// use conventional_commit::errors::{self, Errors};
+/// use conventional_commit::multi_error;
+/// # use std::fmt::{Debug, Display};
+/// # use thiserror::Error;
+///
+/// # #[derive(Error, Debug, PartialEq)]
+/// # #[error("unexpected error: {0}")]
+/// # struct MyError(String);
+/// #
+/// # impl MyError {
+/// #    fn new(str: impl Into<String>) -> Self {
+/// #        MyError(str.into())
+/// #    }
+/// # }
+///
+/// # #[derive(Error, Debug)]
+/// # #[error("validation failed: {0}")]
+/// # struct WrapperError(#[from] Errors<MyError>);
+///
+/// // Create an Errors collection with multiple errors
+/// let errors = multi_error!(MyError::new("first"), MyError::new("second"));
+///
+/// // Display all errors
+/// println!("{}", errors);
+///
+/// // Use as a source in another error
+/// let wrapper = WrapperError(errors);
+/// ```
 #[derive(Debug, PartialEq)]
-pub(crate) struct Errors<E>(Vec<E>)
+pub struct Errors<E>(Vec<E>)
 where
     E: CoreError + Debug + PartialEq;
+
+impl<E, I> From<I> for Errors<E>
+where
+    E: CoreError + Debug + PartialEq,
+    I: IntoIterator<Item = E>,
+{
+    fn from(value: I) -> Self {
+        Errors(value.into_iter().collect())
+    }
+}
 
 impl<E> Display for Errors<E>
 where
@@ -48,6 +141,15 @@ impl<E> CoreError for Errors<E>
 where
     E: CoreError + Debug + PartialEq + 'static,
 {
+    /// Returns the first error in the collection as the source.
+    ///
+    /// This method allows `Errors<E>` to be used in error chains by exposing
+    /// the first error as the source of this error.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(&dyn CoreError)` - A reference to the first error if the collection is not empty
+    /// * `None` - If the collection is empty
     fn source(&self) -> Option<&(dyn CoreError + 'static)> {
         self.0.first().map::<&(dyn CoreError + 'static), _>(|e| e)
     }
@@ -64,14 +166,14 @@ mod tests {
 
     #[rstest]
     #[case::single_error(
-		errors!(TestError::String("boom".to_string())),
+		multi_error!(TestError::String("boom".to_string())),
 		vec![
 			"error(s):",
 			"  string error: boom"
 		]
 	)]
     #[case::multiple_errors(
-        errors!(TestError::Numeric(1), TestError::Numeric(2)),
+        multi_error!(TestError::Numeric(1), TestError::Numeric(2)),
         vec![
 			"error(s):",
 			"  numeric error: 1",
@@ -79,14 +181,14 @@ mod tests {
         ],
 	)]
     #[case::complex_error(
-        errors!(TestError::Complex { msg: "failed".to_string(), number: 42 }),
+        multi_error!(TestError::Complex { msg: "failed".to_string(), number: 42 }),
         vec![
             "error(s):",
             "  complex error: failed: 42",
         ],
 	)]
     #[case::struct_error(
-        errors!(TestError::Struct(TestData {
+        multi_error!(TestError::Struct(TestData {
             string: "test".to_string(),
             num: 100,
             float: 4.2
@@ -97,14 +199,14 @@ mod tests {
         ],
 	)]
     #[case::nested_error(
-        errors!(TestError::Nested(Box::new(TestError::String("inner error".to_string())))),
+        multi_error!(TestError::Nested(Box::new(TestError::String("inner error".to_string())))),
         vec![
             "error(s):",
             "  string error: inner error",
         ],
 	)]
     #[case::mixed_errors(
-        errors!(
+        multi_error!(
             TestError::Numeric(42),
             TestError::String("text error".to_string()),
             TestError::Complex { msg: "complex".to_string(), number: 7 }
@@ -122,14 +224,14 @@ mod tests {
     }
 
     #[rstest]
-    #[case::single_error(errors!(TestError::String("boom".to_string())), TestError::String("boom".to_string()))]
-    #[case::multiple_errors(errors!(TestError::Numeric(1), TestError::String("2".to_string())), TestError::Numeric(1))]
+    #[case::single_error(multi_error!(TestError::String("boom".to_string())), TestError::String("boom".to_string()))]
+    #[case::multiple_errors(multi_error!(TestError::Numeric(1), TestError::String("2".to_string())), TestError::Numeric(1))]
     #[case::complex_error(
-        errors!(TestError::Complex { msg: "complex".to_string(), number: 8 }),
+        multi_error!(TestError::Complex { msg: "complex".to_string(), number: 8 }),
         TestError::Complex { msg: "complex".to_string(), number: 8 }
 	)]
     #[case::struct_error(
-        errors!(TestError::Struct(TestData {
+        multi_error!(TestError::Struct(TestData {
             string: "data".to_string(),
             num: 200,
             float: 2.71
@@ -141,7 +243,7 @@ mod tests {
         })
 	)]
     #[case::nested_error(
-        errors!(TestError::Nested(Box::new(TestError::Numeric(99)))),
+        multi_error!(TestError::Nested(Box::new(TestError::Numeric(99)))),
         TestError::Nested(Box::new(TestError::Numeric(99)))
 	)]
     fn test_get_first_error_as_source(#[case] errs: Errors<TestError>, #[case] expect: TestError) {
