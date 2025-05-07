@@ -22,9 +22,14 @@ macro_rules! errors {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct Errors<E: CoreError + Debug + PartialEq>(Vec<E>);
+pub(crate) struct Errors<E>(Vec<E>)
+where
+    E: CoreError + Debug + PartialEq;
 
-impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
+impl<E> Display for Errors<E>
+where
+    E: CoreError + Debug + PartialEq,
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if self.0.is_empty() {
             return Ok(());
@@ -39,7 +44,10 @@ impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
     }
 }
 
-impl<E: CoreError + Debug + PartialEq + 'static> CoreError for Errors<E> {
+impl<E> CoreError for Errors<E>
+where
+    E: CoreError + Debug + PartialEq + 'static,
+{
     fn source(&self) -> Option<&(dyn CoreError + 'static)> {
         self.0.first().map::<&(dyn CoreError + 'static), _>(|e| e)
     }
