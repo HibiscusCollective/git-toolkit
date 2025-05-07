@@ -23,5 +23,6 @@ workspace = true
 
 [dev-dependencies]
 indoc.workspace = true
+proptest = "1.6.0"
 rstest.workspace = true
 thiserror.workspace = true

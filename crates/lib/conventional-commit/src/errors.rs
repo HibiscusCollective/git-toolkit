@@ -57,6 +57,8 @@ where
 mod tests {
     use super::*;
 
+    use prop::collection::vec;
+    use proptest::prelude::*;
     use rstest::rstest;
     use thiserror::Error;
 
@@ -152,30 +154,60 @@ mod tests {
         assert_eq!(&expect, actual);
     }
 
-    #[test]
-    fn test_large_number_of_errors_are_displayed() {
-        let range = 1..50;
-        let errors = range.clone().map(TestError::Numeric).collect::<Vec<TestError>>();
+    proptest! {
+        #[test]
+        fn prop_errors_display_has_correct_line_count(errors in vec(1..100i32, 1..50)) {
+            let test_errors = errors.iter().map(|&i| TestError::Numeric(i)).collect::<Vec<_>>();
+            let expected_line_count = test_errors.len() + 1;
 
-        let expected_lines = range.clone().map(|i| TestError::Numeric(i).to_string()).collect::<Vec<String>>();
-        let expected = format!("error(s):\n  {}", expected_lines.join("\n  "));
+            let errs = Errors(test_errors);
 
-        assert_eq!(expected, format!("{}", Errors(errors)));
-    }
+            let display_output = format!("{errs}");
 
-    #[test]
-    fn test_large_number_of_errors_get_first_error_as_source() {
-        let range = 1..50;
-        let errors = range.clone().map(TestError::Numeric).collect::<Vec<TestError>>();
+            let line_count = display_output.lines().count();
 
-        let errs = Errors(errors);
-        let actual = errs
-            .source()
-            .expect("should have extracted source error")
-            .downcast_ref::<TestError>()
-            .expect("should be a TestError");
+            prop_assert_eq!(line_count, expected_line_count);
+        }
 
-        assert_eq!(&TestError::Numeric(1), actual);
+        #[test]
+        fn prop_errors_source_returns_first_error(errors in vec(1..100i32, 1..50)) {
+            if errors.is_empty() {
+                return Ok(());
+            }
+
+            let test_errors = errors.iter().map(|&i| TestError::Numeric(i)).collect::<Vec<_>>();
+            let errors_struct = Errors(test_errors);
+
+            let source = errors_struct.source()
+                .expect("should have extracted source error")
+                .downcast_ref::<TestError>()
+                .expect("should be a TestError");
+
+            prop_assert_eq!(source, &TestError::Numeric(errors[0]));
+        }
+
+        #[test]
+        fn prop_errors_display_starts_with_header(errors in vec(1..100i32, 1..50)) {
+            let test_errors = errors.iter().map(|&i| TestError::Numeric(i)).collect::<Vec<_>>();
+            let errs = Errors(test_errors);
+
+            let display_output = format!("{errs}");
+
+            prop_assert!(display_output.starts_with("error(s):"));
+        }
+
+        #[test]
+        fn prop_errors_display_has_correct_indentation(errors in vec(1..100i32, 1..50)) {
+            let test_errors = errors.iter().map(|&i| TestError::Numeric(i)).collect::<Vec<_>>();
+            let errs = Errors(test_errors);
+
+            let display_output = format!("{errs}");
+            let error_lines = display_output.lines().skip(1);
+
+            for line in error_lines {
+                prop_assert!(line.starts_with("  "));
+            }
+        }
     }
 
     #[derive(Error, Debug)]
