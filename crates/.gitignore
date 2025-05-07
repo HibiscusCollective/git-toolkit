@@ -3,7 +3,7 @@
 !bin/ticket/
 
 !lib
-!lib/dummy/
+!lib/conventional-commit/
 
 ########## Code ###########
 !**/src/

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/bin/ticket"]
+members = ["crates/bin/ticket", "crates/lib/conventional-commit"]
 
 [workspace.package]
 version = "0.1.0"
@@ -27,3 +27,6 @@ perf = "deny"
 pedantic = "warn"
 
 [workspace.dependencies]
+thiserror = "2.0.12"
+indoc = "2.0.6"
+rstest = "0.25.0"

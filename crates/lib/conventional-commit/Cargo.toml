@@ -1,0 +1,26 @@
+[package]
+name = "conventional-commit"
+keywords = ["git", "cli", "commit", "tool", "vcs"]
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+exclude.workspace = true
+include.workspace = true
+publish.workspace = true
+
+[dependencies]
+thiserror = "2.0.12"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+indoc.workspace = true
+rstest.workspace = true
+thiserror.workspace = true
