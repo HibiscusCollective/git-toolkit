@@ -109,6 +109,46 @@ pub struct Errors<E>(Vec<E>)
 where
     E: CoreError + Debug + PartialEq;
 
+impl<E> Errors<E>
+where
+    E: CoreError + Debug + PartialEq,
+{
+    /// Adds a new error to the collection.
+    ///
+    /// This method allows you to add additional errors to an existing [Errors](cci:2://file:///mnt/data/2-code/1-projects/git-toolkit/crates/lib/conventional-commit/src/errors.rs:39:0-41:37) collection.
+    /// This is useful when collecting errors during validation or processing.
+    ///
+    /// # Parameters
+    ///
+    /// * `err` - The error to add to the collection
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use conventional_commit::errors::Errors;
+    /// use conventional_commit::multi_error;
+    /// # use thiserror::Error;
+    /// #
+    /// # #[derive(Error, Debug, PartialEq)]
+    /// # #[error("test error: {0}")]
+    /// # enum TestError {
+    /// #    Numeric(i32),
+    /// #    String(String),
+    /// # }
+    ///
+    /// // Create an initial error collection
+    /// let mut errors = multi_error!(TestError::Numeric(42));
+    ///
+    /// // Later, append another error
+    /// errors.append(TestError::String("additional error".to_string()));
+    ///
+    /// // The collection now contains both errors
+    /// ```
+    pub fn append(&mut self, err: E) {
+        self.0.push(err);
+    }
+}
+
 impl<E, I> From<I> for Errors<E>
 where
     E: CoreError + Debug + PartialEq,
@@ -254,6 +294,21 @@ mod tests {
             .expect("should be a TestError");
 
         assert_eq!(&expect, actual);
+    }
+
+    #[test]
+    fn test_appends_to_existing_errors() {
+        let mut errs = multi_error!(TestError::Numeric(1));
+
+        errs.append(TestError::String("boom".to_string()));
+
+        assert_eq!(
+            "error(s):\n  \
+          	   numeric error: 1\n  \
+               string error: boom\
+        	",
+            format!("{errs}")
+        );
     }
 
     proptest! {
