@@ -19,6 +19,6 @@ publish = true
 clap = { version = "4.5.37", features = ["derive"] }
 
 [dev-dependencies]
+indoc.workspace = true
+rstest.workspace = true
 assert_cmd = "2.0.17"
-indoc = "2.0.6"
-rstest = "0.25.0"
