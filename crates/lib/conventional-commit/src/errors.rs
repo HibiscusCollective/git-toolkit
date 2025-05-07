@@ -26,12 +26,13 @@ pub(crate) struct Errors<E: CoreError + Debug + PartialEq + 'static>(&'static [E
 
 impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        if self.0.len() == 1 {
-            return write!(f, "{}", self.0[0]);
+        if self.0.is_empty() {
+            return Ok(());
         }
 
+        write!(f, "error(s):")?;
         for err in self.0.iter() {
-            writeln!(f, "{}", err)?
+            write!(f, "\n  {}", err)?
         }
 
         Ok(())
@@ -52,13 +53,19 @@ mod tests {
     use thiserror::Error;
 
     #[rstest]
-    #[case::single_error(errors!(TestError("boom")), vec!["test error: boom"])]
+    #[case::single_error(errors!(
+		TestError("boom")), 
+		vec![
+			"error(s):",
+			"  test error: boom"
+		]
+	)]
     #[case::multiple_errors(
         errors!(TestError("1"), TestError("2")), 
         vec![
-			"test error: 1",
-            "test error: 2",
-			""
+			"error(s):",
+			"  test error: 1",
+            "  test error: 2",
         ],
     )]
     fn test_displays_error_list(#[case] errs: Errors<TestError>, #[case] expect_lines: Vec<&str>) {
