@@ -152,6 +152,32 @@ mod tests {
         assert_eq!(&expect, actual);
     }
 
+    #[test]
+    fn test_large_number_of_errors_are_displayed() {
+        let range = 1..50;
+        let errors = range.clone().map(TestError::Numeric).collect::<Vec<TestError>>();
+
+        let expected_lines = range.clone().map(|i| TestError::Numeric(i).to_string()).collect::<Vec<String>>();
+        let expected = format!("error(s):\n  {}", expected_lines.join("\n  "));
+
+        assert_eq!(expected, format!("{}", Errors(errors)));
+    }
+
+    #[test]
+    fn test_large_number_of_errors_get_first_error_as_source() {
+        let range = 1..50;
+        let errors = range.clone().map(TestError::Numeric).collect::<Vec<TestError>>();
+
+        let errs = Errors(errors);
+        let actual = errs
+            .source()
+            .expect("should have extracted source error")
+            .downcast_ref::<TestError>()
+            .expect("should be a TestError");
+
+        assert_eq!(&TestError::Numeric(1), actual);
+    }
+
     #[derive(Error, Debug)]
     enum TestError {
         #[error("numeric error: {0}")]
