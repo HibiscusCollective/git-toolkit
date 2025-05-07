@@ -13,17 +13,16 @@
 
 use core::error::Error as CoreError;
 use std::fmt::{Debug, Display, Formatter};
-use thiserror::Error;
 
 #[macro_export]
 macro_rules! errors {
     ($($err:expr),+) => {
-        Errors(vec![$($err),+])
+        Errors(&[$($err),+])
     }
 }
 
-#[derive(Error, Debug, PartialEq)]
-struct Errors<E: CoreError + Debug + PartialEq>(Vec<E>);
+#[derive(Debug, PartialEq)]
+pub(crate) struct Errors<E: CoreError + Debug + PartialEq + 'static>(&'static [E]);
 
 impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -39,12 +38,18 @@ impl<E: CoreError + Debug + PartialEq> Display for Errors<E> {
     }
 }
 
+impl<E: CoreError + Debug + PartialEq + 'static> CoreError for Errors<E> {
+    fn source(&self) -> Option<&(dyn CoreError + 'static)> {
+        self.0.first().map::<&(dyn CoreError + 'static), _>(|e| e)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use indoc::indoc;
     use rstest::rstest;
+    use thiserror::Error;
 
     #[rstest]
     #[case::single_error(errors!(TestError("boom")), vec!["test error: boom"])]
@@ -60,6 +65,20 @@ mod tests {
         let expect = expect_lines.join("\n");
         assert_eq!(expect, format!("{}", errs))
     }
+
+    #[rstest]
+    #[case::single_error(errors!(TestError("boom")), TestError("boom"))]
+    #[case::multiple_errors(errors!(TestError("1"), TestError("2")), TestError("1"))]
+    fn test_get_first_error_as_source(#[case] errs: Errors<TestError>, #[case] expect: TestError) {
+        let actual = errs
+            .source()
+            .expect("should have extracted source error")
+            .downcast_ref::<TestError>()
+            .expect("should be a TestError");
+
+        assert_eq!(&expect, actual)
+    }
+
     #[derive(Error, Debug, PartialEq)]
     #[error("test error: {0}")]
     struct TestError<'a>(&'a str);
