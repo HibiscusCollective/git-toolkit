@@ -10,7 +10,28 @@
  * You should have received a copy of the GNU Affero General Public License along with this program.
  * If not, see https://www.gnu.org/licenses/.
  */
+use crate::errors::Errors;
+use thiserror::Error;
 
-pub mod errors;
-mod footer;
-mod validation;
+pub trait Validate {
+    fn validate() -> Result<(), Errors<ValidationError>>;
+}
+
+#[derive(Error, Debug, PartialEq)]
+pub enum ValidationError {
+    #[error("field '{0}' is required")]
+    MissingRequiredField(String),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use rstest::rstest;
+
+    #[rstest]
+    #[case::missing_required_field(ValidationError::MissingRequiredField("test".into()), "field 'test' is required")]
+    fn test_display_error(#[case] err: ValidationError, #[case] expect: impl Into<String>) {
+        assert_eq!(expect.into(), format!("{err}"));
+    }
+}
