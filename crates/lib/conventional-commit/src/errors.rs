@@ -135,6 +135,12 @@ where
     /// #    Numeric(i32),
     /// #    String(String),
     /// # }
+    /// #
+    /// # impl TestError {
+    /// #     fn new(str: impl Into<String>) -> Self {
+    /// #         TestError::String(str.into())
+    /// #     }
+    /// # }
     ///
     /// // Create an initial error collection
     /// let mut errors = multi_error!(TestError::Numeric(42));
@@ -146,6 +152,25 @@ where
     /// ```
     pub fn append(&mut self, err: E) {
         self.0.push(err);
+    }
+
+    /// Returns `true` if the collection contains no errors.
+    ///
+    /// # Returns
+    /// * `true` if no errors are in the collection.
+    /// * `false` if there is at least one error.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns the amount of errors in the collection.
+    ///
+    /// # Returns
+    /// The amount of errors stored in this collection. Returns `0` if empty.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
 
@@ -311,6 +336,18 @@ mod tests {
         );
     }
 
+    #[rstest]
+    #[case::empty(Errors(vec![]), true)]
+    #[case::one(multi_error!(TestError::Numeric(1)), false)]
+    fn test_is_empty(#[case] errs: Errors<TestError>, #[case] expect: bool) {
+        assert_eq!(expect, errs.is_empty());
+    }
+
+    #[rstest]
+    #[case::empty(Errors(vec![]), 0)]
+    #[case::two(multi_error!(TestError::Numeric(1), TestError::Numeric(2)), 2)]
+    fn test_len(#[case] errs: Errors<TestError>, #[case] expect: u8) {}
+
     proptest! {
         #[test]
         fn prop_errors_display_has_correct_line_count(errors in vec(1..100i32, 1..50)) {
@@ -365,6 +402,15 @@ mod tests {
                 prop_assert!(line.starts_with("  "));
             }
         }
+
+        #[test]
+        #[allow(clippy::len_zero)] // Allowed here for the assertion to be meaningful
+        fn prop_is_empty_len_relationship(errors in vec(1..100i32, 0..50)) {
+            let test_errors = errors.iter().map(|&i| TestError::Numeric(i)).collect::<Vec<_>>();
+            let errs = Errors(test_errors);
+
+            prop_assert_eq!(errs.0.is_empty(), errs.0.len() == 0);
+        }
     }
 
     #[derive(Error, Debug)]
@@ -374,7 +420,7 @@ mod tests {
         #[error("string error: {0}")]
         String(String),
         #[error("complex error: {msg}: {number}")]
-        Complex { msg: String, number: u8 },
+        Complex { msg: String, number: i32 },
         #[error("struct error: {0:?}")]
         Struct(TestData),
         #[error(transparent)]
