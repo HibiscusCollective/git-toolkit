@@ -17,12 +17,24 @@
 //! and collect validation errors.
 
 use crate::errors::Errors;
+use anyhow::Error as AnyError;
 use thiserror::Error;
 
 /// A trait for validating conventional commit components.
 ///
 /// Types implementing this trait can be validated to ensure they meet
 /// the requirements of the conventional commit specification.
+///
+/// The `validate` method should collect all validation errors rather than
+/// returning on the first error, allowing for more comprehensive feedback
+/// during validation.
+///
+/// # Implementation Guidelines
+///
+/// When implementing this trait:
+/// 1. Create an empty `Errors` collection
+/// 2. Check all validation rules, adding errors to the collection as needed
+/// 3. Return `Ok(())` if no errors were found, or `Err(errors)` otherwise
 pub trait Validate {
     /// Validates the implementing type.
     ///
@@ -37,7 +49,10 @@ pub trait Validate {
 ///
 /// These errors represent specific validation failures that can occur
 /// when validating conventional commit components.
-#[derive(Error, Debug, PartialEq)]
+///
+/// The error variants are designed to provide clear, actionable feedback
+/// about what validation rules were violated and how to fix them.
+#[derive(Error, Debug)]
 pub enum ValidationError {
     /// Error indicating a required field is missing.
     ///
@@ -46,16 +61,42 @@ pub enum ValidationError {
     /// * `0` - The name of the missing field
     #[error("field '{0}' is required")]
     MissingRequiredField(String),
+
+    /// Error indicating a field contains an invalid value.
+    ///
+    /// # Parameters
+    ///
+    /// * `0` - The name of the field with the invalid value
+    /// * `1` - The reason it's invalid
+    #[error("field '{0}' has invalid value: {1}")]
+    InvalidFieldValue(String, #[source] AnyError),
+}
+
+/// Implementation of `PartialEq` for `ValidationError` to enable comparison in tests.
+///
+/// Two `ValidationError` instances are considered equal if:
+/// - They are both `MissingRequiredField` errors with the same field name
+/// - They are both `InvalidFieldValue` errors with the same field name and error message
+impl PartialEq for ValidationError {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (ValidationError::MissingRequiredField(a), ValidationError::MissingRequiredField(b)) => b == a,
+            (ValidationError::InvalidFieldValue(a_str, a_err), ValidationError::InvalidFieldValue(b_str, b_err)) => a_str == b_str && a_err.to_string() == b_err.to_string(),
+            (_, _) => false,
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    use anyhow::anyhow;
     use rstest::rstest;
 
     #[rstest]
     #[case::missing_required_field(ValidationError::MissingRequiredField("test".into()), "field 'test' is required")]
+    #[case::invalid_field_value(ValidationError::InvalidFieldValue("test".into(), anyhow!("boom")), "field 'test' has invalid value: boom")]
     fn test_display_error(#[case] err: ValidationError, #[case] expect: impl Into<String>) {
         assert_eq!(expect.into(), format!("{err}"));
     }

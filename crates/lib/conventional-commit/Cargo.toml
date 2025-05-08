@@ -15,14 +15,15 @@ include.workspace = true
 publish.workspace = true
 
 [dependencies]
+anyhow = "1.0.98"
 derive_builder = "0.20.2"
+email_address = "0.2.9"
 thiserror = "2.0.12"
 
 [lints]
 workspace = true
 
 [dev-dependencies]
-anyhow = "1.0.98"
 proptest = "1.6.0"
 rstest.workspace = true
 thiserror.workspace = true
