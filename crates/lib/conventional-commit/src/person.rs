@@ -24,6 +24,7 @@ use crate::errors::Errors;
 use crate::validation::{Validate, ValidationError};
 use anyhow::anyhow;
 use email_address::EmailAddress;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 /// Represents a person in a Git commit.
@@ -50,7 +51,7 @@ impl Person {
     ///
     /// * `Ok(Person)` - A valid Person instance
     /// * `Err(Errors<ValidationError>)` - A collection of validation errors if validation fails
-    fn parse(name: impl Into<String>, email: Option<impl Into<String>>) -> Result<Self, Errors<ValidationError>> {
+    pub fn parse(name: impl Into<String>, email: Option<impl Into<String>>) -> Result<Self, Errors<ValidationError>> {
         let person = Person {
             name: name.into(),
             email: email.map(Into::into),
@@ -106,6 +107,34 @@ impl Validate for Person {
     }
 }
 
+/// Implementation of the `Display` trait for `Person`.
+///
+/// This implementation formats a `Person` instance as a string in the standard Git author/committer format:
+/// - If only a name is present, it returns just the name
+/// - If both name and email are present, it returns the format "Name <email>"
+///
+/// # Examples
+///
+/// ```
+/// # use conventional_commit::person::Person;
+/// # let person_name_only = Person::parse("Alice Bob", None::<String>).unwrap();
+/// # let person_with_email = Person::parse("Charlie Delta", Some("charlie@delta.io")).unwrap();
+///
+/// assert_eq!(format!("{}", person_name_only), "Alice Bob");
+/// assert_eq!(format!("{}", person_with_email), "Charlie Delta <charlie@delta.io>");
+/// ```
+impl Display for Person {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)?;
+
+        if let Some(email) = self.email.clone() {
+            write!(f, " <{email}>")?;
+        }
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -122,5 +151,28 @@ mod test {
     fn test_return_error_parsing_person(#[case] name: impl Into<String>, #[case] email: Option<impl Into<String>>, #[case] expect: Errors<ValidationError>) {
         let errs = Person::parse(name, email).expect_err("should have failed to create Person");
         assert_eq!(expect, errs);
+    }
+
+    #[rstest]
+    #[case::name_only(Person{name: "Alice Bob".into(), email: None}, "Alice Bob")]
+    #[case::name_and_email(Person{name: "Alice Bob".into(), email: Some("alice.bob@test.io".into())}, "Alice Bob <alice.bob@test.io>")]
+    fn test_display_person(#[case] person: Person, #[case] expect: impl Into<String>) {
+        assert_eq!(expect.into(), format!("{person}"));
+    }
+
+    #[rstest]
+    #[case::name_only("John Doe", Option::<String>::None)]
+    #[case::name_and_email("Jane Smith", Some("jane.smith@example.com"))]
+    fn test_name_getter(#[case] name: impl Into<String>, #[case] email: Option<impl Into<String>>) {
+        let person = Person::parse(name, email).expect("should not have failed to parse");
+        assert_eq!(person.name, person.name());
+    }
+
+    #[rstest]
+    #[case::no_email("John Doe", Option::<String>::None)]
+    #[case::with_email("Jane Smith", Some("jane.smith@example.com"))]
+    fn test_email_getter(#[case] name: impl Into<String>, #[case] email: Option<impl Into<String>>) {
+        let person = Person::parse(name, email).expect("should not have failed to parse");
+        assert_eq!(person.email.as_deref(), person.email());
     }
 }

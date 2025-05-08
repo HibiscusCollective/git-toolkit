@@ -14,5 +14,5 @@ extern crate core;
 
 pub mod errors;
 mod footer;
-mod person;
+pub mod person;
 mod validation;
