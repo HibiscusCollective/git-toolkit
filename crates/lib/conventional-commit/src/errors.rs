@@ -373,7 +373,9 @@ mod tests {
     #[rstest]
     #[case::empty(Errors(vec![]), 0)]
     #[case::two(multi_error!(TestError::Numeric(1), TestError::Numeric(2)), 2)]
-    fn test_len(#[case] errs: Errors<TestError>, #[case] expect: u8) {}
+    fn test_len(#[case] errs: Errors<TestError>, #[case] expect: usize) {
+        assert_eq!(expect, errs.len());
+    }
 
     proptest! {
         #[test]
