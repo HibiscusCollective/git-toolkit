@@ -13,4 +13,5 @@
 
 pub mod errors;
 mod footer;
+mod person;
 mod validation;
