@@ -113,9 +113,17 @@ impl<E> Errors<E>
 where
     E: CoreError + Debug + PartialEq,
 {
+    /// Creates a new, empty `Errors` collection.
+    ///
+    /// # Returns
+    /// A new instance of `Errors` containing no errors.
+    pub(crate) fn new() -> Self {
+        Self(Vec::new())
+    }
+
     /// Adds a new error to the collection.
     ///
-    /// This method allows you to add additional errors to an existing [Errors](cci:2://file:///mnt/data/2-code/1-projects/git-toolkit/crates/lib/conventional-commit/src/errors.rs:39:0-41:37) collection.
+    /// This method allows you to add additional errors to an existing [`Errors`] collection.
     /// This is useful when collecting errors during validation or processing.
     ///
     /// # Parameters
@@ -179,6 +187,14 @@ where
     E: CoreError + Debug + PartialEq,
     I: IntoIterator<Item = E>,
 {
+    /// Creates an `Errors` collection from an iterator of error items.
+    ///
+    /// This implementation allows for convenient creation of error collections
+    /// from any iterable source of errors, such as vectors or arrays.
+    ///
+    /// # Parameters
+    ///
+    /// * `value` - An iterable collection of errors to convert
     fn from(value: I) -> Self {
         Errors(value.into_iter().collect())
     }
@@ -188,6 +204,17 @@ impl<E> Display for Errors<E>
 where
     E: CoreError + Debug + PartialEq,
 {
+    /// Formats the error collection for display.
+    ///
+    /// The output format is:
+    /// ```text
+    /// error(s):
+    ///   first error message
+    ///   second error message
+    ///   ...
+    /// ```
+    ///
+    /// If the collection is empty, nothing is displayed.
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if self.0.is_empty() {
             return Ok(());
