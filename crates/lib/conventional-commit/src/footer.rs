@@ -14,7 +14,10 @@ use derive_builder::Builder;
 use std::fmt::{Display, Formatter};
 
 #[derive(Builder)]
-struct Footer {}
+struct Footer {
+    #[builder(setter(into, strip_option), default)]
+    breaking_change: Option<String>,
+}
 
 impl Footer {
     fn builder() -> FooterBuilder {
@@ -24,7 +27,11 @@ impl Footer {
 
 impl Display for Footer {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+        if let Some(msg) = self.breaking_change.clone() {
+            writeln!(f, "BREAKING CHANGE: {msg}")?;
+        }
+
+        Ok(())
     }
 }
 
@@ -35,9 +42,10 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    #[case::empty(Footer::builder(), "")]
-    fn test_displays_footer_in_conventional_commit_format(#[case] builder: FooterBuilder, #[case] expect: impl Into<String>) {
-        let footer = builder.build().expect("should have build a footer");
+    #[case::empty(Footer::builder().build(), "")]
+    #[case::breaking_change(Footer::builder().breaking_change("test breaking change message").build(), "BREAKING CHANGE: test breaking change message\n")]
+    fn test_displays_footer(#[case] footer: Result<Footer, FooterBuilderError>, #[case] expect: impl Into<String>) {
+        let footer = footer.expect("should have build a footer");
         assert_eq!(expect.into(), format!("{footer}"));
     }
 }
