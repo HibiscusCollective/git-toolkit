@@ -17,14 +17,14 @@ use crate::validation::{Validate, ValidationError};
 #[derive(Debug)]
 pub struct Person {
     name: String,
-    email: String,
+    email: Option<String>,
 }
 
 impl Person {
-    fn parse(name: impl Into<String>, email: impl Into<String>) -> Result<Self, Errors<ValidationError>> {
+    fn parse(name: impl Into<String>, email: Option<impl Into<String>>) -> Result<Self, Errors<ValidationError>> {
         let person = Person {
             name: name.into(),
-            email: email.into(),
+            email: email.map(Into::into),
         };
 
         person.validate().map(|()| person)
@@ -50,9 +50,9 @@ mod test {
     use rstest::rstest;
 
     #[rstest]
-    #[case::when_name_and_email_empty("", "", multi_error!(ValidationError::MissingRequiredField("name".to_string())))]
-    #[case::when_only_name_empty("", "test@test.com", multi_error!(ValidationError::MissingRequiredField("name".to_string())))]
-    fn test_return_error_parsing_person(#[case] name: impl Into<String>, #[case] email: impl Into<String>, #[case] expect: Errors<ValidationError>) {
+    #[case::when_name_and_email_empty("", Option::<String>::None, multi_error!(ValidationError::MissingRequiredField("name".to_string())))]
+    #[case::when_only_name_empty("", Some("test@test.com"), multi_error!(ValidationError::MissingRequiredField("name".to_string())))]
+    fn test_return_error_parsing_person(#[case] name: impl Into<String>, #[case] email: Option<impl Into<String>>, #[case] expect: Errors<ValidationError>) {
         let errs = Person::parse(name, email).expect_err("should have failed to create Person");
         assert_eq!(expect, errs);
     }
