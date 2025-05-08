@@ -10,6 +10,34 @@
  * You should have received a copy of the GNU Affero General Public License along with this program.
  * If not, see https://www.gnu.org/licenses/.
  */
+use derive_builder::Builder;
+use std::fmt::{Display, Formatter};
 
-pub mod errors;
-mod footer;
+#[derive(Builder)]
+struct Footer {}
+
+impl Footer {
+    fn builder() -> FooterBuilder {
+        FooterBuilder::default()
+    }
+}
+
+impl Display for Footer {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use rstest::rstest;
+
+    #[rstest]
+    #[case::empty(Footer::builder(), "")]
+    fn test_displays_footer_in_conventional_commit_format(#[case] builder: FooterBuilder, #[case] expect: impl Into<String>) {
+        let footer = builder.build().expect("should have build a footer");
+        assert_eq!(expect.into(), format!("{footer}"));
+    }
+}
