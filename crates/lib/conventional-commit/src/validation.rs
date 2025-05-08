@@ -10,15 +10,40 @@
  * You should have received a copy of the GNU Affero General Public License along with this program.
  * If not, see https://www.gnu.org/licenses/.
  */
+
+//! Validation for conventional commit components.
+//!
+//! This module provides a standardized way to validate components of conventional commits
+//! and collect validation errors.
+
 use crate::errors::Errors;
 use thiserror::Error;
 
+/// A trait for validating conventional commit components.
+///
+/// Types implementing this trait can be validated to ensure they meet
+/// the requirements of the conventional commit specification.
 pub trait Validate {
-    fn validate() -> Result<(), Errors<ValidationError>>;
+    /// Validates the implementing type.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - If validation passes
+    /// * `Err(Errors<ValidationError>)` - A collection of validation errors if validation fails
+    fn validate(&self) -> Result<(), Errors<ValidationError>>;
 }
 
+/// Errors that can occur during validation of conventional commit components.
+///
+/// These errors represent specific validation failures that can occur
+/// when validating conventional commit components.
 #[derive(Error, Debug, PartialEq)]
 pub enum ValidationError {
+    /// Error indicating a required field is missing.
+    ///
+    /// # Parameters
+    ///
+    /// * `0` - The name of the missing field
     #[error("field '{0}' is required")]
     MissingRequiredField(String),
 }
