@@ -11,5 +11,11 @@
  * If not, see https://www.gnu.org/licenses/.
  */
 
+//! Crate for writing and validating conventional commit formatted git messages.
+//!
+//! This crate provides core types and utilities for representing and validating conventional commit data
+//! in the header, footer, and body of the commit.
+#![deny(missing_docs)]
+
 pub mod errors;
 pub mod model;

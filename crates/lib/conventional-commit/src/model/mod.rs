@@ -1,15 +1,33 @@
+//! Model types and traits for conventional commit parsing and validation.
+//!
+//! This module defines core data structures, builders, and validation traits for conventional commits
+
 use crate::errors::Errors;
 use anyhow::Error as AnyError;
 use thiserror::Error;
 
-mod footer;
+// mod footer;
 mod person;
 
 pub use person::{Person, PersonBuilder};
 
 type ValidationErrors = Errors<ValidationError>;
 
+/// A trait for building validated objects from builder types.
+///
+/// Implementers of this trait provide a `build` method that attempts to build an instance of type `T`,
+/// returning validation errors if the instance is invalid according to the model's rules.
 pub trait Build<T> {
+    /// Attempts to build an instance of type `T` from the builder.
+    ///
+    /// # Returns
+    /// * `Ok(T)` if the builder contains valid data and the instance can be constructed.
+    /// * `Err(ValidationErrors)` if validation fails for any fields in the builder.
+    ///
+    /// # Errors
+    ///
+    /// `ValidationErrors` contain information about the specific validation
+    /// rule violations that occurred and how to fix them.
     fn build(&mut self) -> Result<T, ValidationErrors>;
 }
 
