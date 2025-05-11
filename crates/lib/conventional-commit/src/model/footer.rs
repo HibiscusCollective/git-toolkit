@@ -10,6 +10,7 @@
  * You should have received a copy of the GNU Affero General Public License along with this program.
  * If not, see https://www.gnu.org/licenses/.
  */
+use crate::model::person::Person;
 use derive_builder::Builder;
 use std::fmt::{Display, Formatter};
 
@@ -17,6 +18,8 @@ use std::fmt::{Display, Formatter};
 struct Footer {
     #[builder(setter(into, strip_option), default)]
     breaking_change: Option<String>,
+    #[builder(try_setter, setter(custom), default)]
+    people: Vec<Person>,
 }
 
 impl Footer {
@@ -24,6 +27,8 @@ impl Footer {
         FooterBuilder::default()
     }
 }
+
+impl FooterBuilder {}
 
 impl Display for Footer {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

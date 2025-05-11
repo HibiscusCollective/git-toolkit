@@ -35,7 +35,7 @@ depends = ["fix:*"]
 
 [tasks.test]
 description = "Run all tests"
-run = "cargo test"
+depends = ["test:debug"]
 
 [tasks.build]
 description = "Build the project"

@@ -1,48 +1,16 @@
-/*
- * Git Toolkit extends Git's user experience to be more friendly while integrating with conventional commits specification
- * Copyright (c) 2025 Pierre Fouilloux, Hibiscus Collective
- *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License along with this program.
- * If not, see https://www.gnu.org/licenses/.
- */
-
-//! Validation for conventional commit components.
-//!
-//! This module provides a standardized way to validate components of conventional commits
-//! and collect validation errors.
-
 use crate::errors::Errors;
 use anyhow::Error as AnyError;
 use thiserror::Error;
 
-/// A trait for validating conventional commit components.
-///
-/// Types implementing this trait can be validated to ensure they meet
-/// the requirements of the conventional commit specification.
-///
-/// The `validate` method should collect all validation errors rather than
-/// returning on the first error, allowing for more comprehensive feedback
-/// during validation.
-///
-/// # Implementation Guidelines
-///
-/// When implementing this trait:
-/// 1. Create an empty `Errors` collection
-/// 2. Check all validation rules, adding errors to the collection as needed
-/// 3. Return `Ok(())` if no errors were found, or `Err(errors)` otherwise
-pub trait Validate {
-    /// Validates the implementing type.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(())` - If validation passes
-    /// * `Err(Errors<ValidationError>)` - A collection of validation errors if validation fails
-    fn validate(&self) -> Result<(), Errors<ValidationError>>;
+mod footer;
+mod person;
+
+pub use person::{Person, PersonBuilder};
+
+type ValidationErrors = Errors<ValidationError>;
+
+pub trait Build<T> {
+    fn build(&mut self) -> Result<T, ValidationErrors>;
 }
 
 /// Errors that can occur during validation of conventional commit components.
