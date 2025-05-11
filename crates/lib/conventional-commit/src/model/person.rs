@@ -10,6 +10,7 @@
  * You should have received a copy of the GNU Affero General Public License along with this program.
  * If not, see https://www.gnu.org/licenses/.
  */
+#![deny(missing_docs)]
 
 //! Person representation for conventional commits.
 //!
@@ -33,27 +34,35 @@ use std::{
     str::FromStr,
 };
 
+/// The default relationship string used for co-authors in the commit message.
 const DEFAULT_RELATIONSHIP: &str = "Co-Authored-By";
 
-/// Represents a model in a Git commit.
+/// Represents a person (ex: author, co-author, or reviewer) in a Git commit.
 ///
-/// A `Person` consists of a name and an optional email address. The name is required,
+/// A `Person` consists of a name, a relationship to the commit, and an optional email address. The name is required,
 /// and if an email is provided, it must be a valid email address according to RFC 5322.
 #[derive(Builder, Clone, Debug)]
 #[builder(build_fn(skip))]
 pub struct Person {
-    /// The name of the model.
+    /// The name of the person
     #[builder(setter(custom))]
     name: String,
-    /// The model's relationship to the commit (ex: co-author, reviewer, etc.), defaults to 'Co-Authored-By'.
-    #[builder(setter(into), default=DEFAULT_RELATIONSHIP.into())]
-    relationship: String,
-    /// The optional email address of the model.\
+    /// The email address of the person, if available.
     #[builder(setter(into, strip_option), default)]
     email: Option<String>,
+    /// The relationship of the person to the commit (e.g., "Co-Authored-By").
+    #[builder(setter(into), default = DEFAULT_RELATIONSHIP.into())]
+    relationship: String,
 }
 
 impl Person {
+    /// Creates a new `PersonBuilder` for constructing a `Person`.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the person.
+    ///
+    /// # Returns
+    /// A `PersonBuilder` instance for further configuration.
     pub fn builder(name: impl Into<String>) -> PersonBuilder {
         PersonBuilder {
             name: Some(name.into()),
@@ -61,35 +70,40 @@ impl Person {
         }
     }
 
-    /// Returns the name of the model.
+    /// Returns the name of the person.
     ///
     /// # Returns
-    ///
-    /// The name of the model as a string slice.
+    /// The name of the person as a string slice.
+    #[must_use]
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    /// Returns the relationship of the model to the commit
+    /// Returns the relationship of the person to the commit.
     ///
     /// # Returns
-    ///
-    /// A string representing the relationship, ex: "Co-Authored-By"
+    /// A string representing the relationship, e.g., "Co-Authored-By".
+    #[must_use]
     pub fn relationship(&self) -> &str {
         &self.relationship
     }
 
-    /// Returns the email of the model, if available.
+    /// Returns the email of the person, if available.
     ///
     /// # Returns
-    ///
     /// An optional reference to the email string.
+    #[must_use]
     pub fn email(&self) -> Option<&str> {
         self.email.as_deref()
     }
 }
 
 impl PersonBuilder {
+    /// Validates the name field for the `Person`.
+    ///
+    /// # Returns
+    /// * `Ok(String)` if the name is valid.
+    /// * `Err(ValidationError)` if the name is invalid.
     fn validate_name(&mut self) -> Result<String, ValidationError> {
         let err = ValidationError::MissingRequiredField("name".into());
 
@@ -100,6 +114,12 @@ impl PersonBuilder {
         }
     }
 
+    /// Validates the email field for the `Person`.
+    ///
+    /// # Returns
+    /// * `Ok(Some(String))` if the email is valid.
+    /// * `Ok(None)` if no email is provided.
+    /// * `Err(ValidationError)` if the email is invalid.
     fn validate_email(&mut self) -> Result<Option<String>, ValidationError> {
         if let Some(Some(email)) = self.email.clone() {
             if let Err(e) = EmailAddress::from_str(email.as_str()) {
@@ -112,6 +132,10 @@ impl PersonBuilder {
         }
     }
 
+    /// Returns the relationship or the default if not set.
+    ///
+    /// # Returns
+    /// A string representing the relationship.
     fn get_relationship_or_default(&mut self) -> String {
         if let Some(relationship) = self.relationship.clone() {
             if relationship.is_empty() { DEFAULT_RELATIONSHIP.to_string() } else { relationship }
@@ -121,18 +145,17 @@ impl PersonBuilder {
     }
 }
 
-/// Implementation of the `Validate` trait for `PersonBuilder`.
+/// Implementation of the `Build` trait for `PersonBuilder`.
 ///
 /// This implementation validates that:
 /// - The name is not empty
 /// - If an email is provided, it is a valid email address according to RFC 5322
 impl Build<Person> for PersonBuilder {
-    /// Validates the `Person` instance.
+    /// Validates and builds a `Person` instance.
     ///
     /// # Returns
-    ///
-    /// * `Ok(())` - If validation passes
-    /// * `Err(Errors<ValidationError>)` - A collection of validation errors if validation fails
+    /// * `Ok(Person)` if validation passes.
+    /// * `Err(ValidationErrors)` if validation fails.
     fn build(&mut self) -> Result<Person, ValidationErrors> {
         let mut errs = Errors::new();
 
@@ -154,9 +177,7 @@ impl Build<Person> for PersonBuilder {
 
 /// Implementation of the `Display` trait for `Person`.
 ///
-/// This implementation formats a `Person` instance as a string in the standard Git author/committer format:
-/// - If only a name is present, it returns just the name
-/// - If both name and email are present, it returns the format "Name <email>"
+/// This implementation formats a `Person` instance as a string in the standard conventional commit footer format:
 ///
 /// # Examples
 ///
@@ -173,6 +194,13 @@ impl Build<Person> for PersonBuilder {
 /// assert_eq!(format!("{}", person_with_email_and_relationship), "Reviewer: Charlie Delta <charlie@delta.io>");
 /// ```
 impl Display for Person {
+    /// Formats the `Person` for display.
+    ///
+    /// # Arguments
+    /// * `f` - The formatter.
+    ///
+    /// # Returns
+    /// A `std::fmt::Result` indicating success or failure.
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}: {}", self.relationship, self.name)?;
 
